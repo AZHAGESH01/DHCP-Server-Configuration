@@ -1,0 +1,140 @@
+Cisco DHCP Configuration Workflow (WRT300N + Router + Clients)
+
+📘 Overview
+This README explains how to configure and verify DHCP across multiple interfaces in your Packet Tracer lab, including router configuration, DHCP pools, and checking client connections (like DVRs, PCs, or Wi-Fi devices).
+
+
+🧩 1. Router Interface Configuration
+
+FastEthernet0/0 (LAN 1)
+```bash
+interface FastEthernet0/0
+ ip address 172.16.150.1 255.255.255.0
+ no shutdown
+```
+
+FastEthernet0/1 (LAN 2)
+```bash
+interface FastEthernet0/1
+ ip address 172.16.160.1 255.255.255.0
+ no shutdown
+```
+
+
+⚙️ 2. DHCP Configuration
+
+Exclude Gateway Addresses
+```bash
+ip dhcp excluded-address 172.16.150.1 172.16.150.10
+ip dhcp excluded-address 172.16.160.1 172.16.160.10
+```
+
+Create DHCP Pools
+For LAN 1 (Fa0/0)
+```bash
+ip dhcp pool LAN_IT
+ network 172.16.150.0 255.255.255.0
+ default-router 172.16.150.1
+ dns-server 8.8.8.8
+ lease 1
+```
+
+For LAN 2 (Fa0/1)
+```bash
+ip dhcp pool LAN_SALES
+ network 172.16.160.0 255.255.255.0
+ default-router 172.16.160.1
+ dns-server 8.8.8.8
+ lease 1
+```
+
+---
+
+🧰 3. Verification Commands
+
+Check Interfaces
+```bash
+show ip interface brief
+```
+Confirms which ports are UP and assigned IPs.
+
+Check DHCP Leases
+```bash
+show ip dhcp binding
+```
+Lists all IPs assigned by DHCP to clients.
+
+Check DHCP Conflicts
+```bash
+show ip dhcp conflict
+clear ip dhcp conflict *
+```
+
+---
+
+🧠 4. WRT300N Verification (Client Side)
+
+Access Router Web Interface
+1. Open browser → http://192.168.1.1
+2. Login: admin / admin
+3. Go to **Status → Local Network → DHCP Clients Table**
+4. View all connected devices and their IPs.
+
+Wireless Devices
+Navigate to **Status → Wireless → Wireless Clients Table**
+
+---
+
+🧪 5. Client Testing
+
+On PCs or DVRs
+```cmd
+ipconfig /release
+ipconfig /renew
+```
+- Should receive IP in `172.16.150.x` or `172.16.160.x`
+- Gateway should be `.1` of respective subnet
+
+Ping Test
+```cmd
+ping 172.16.150.1
+ping 172.16.160.1
+```
+
+---
+
+🧾 6. Optional Commands
+
+Restart DHCP service:
+```bash
+no service dhcp
+service dhcp
+```
+
+View logs for DHCP assignment events:
+```bash
+debug ip dhcp server events
+```
+
+---
+
+📜 Notes
+- Use **Packet Tracer 8.x or later** for full DHCP compatibility.
+- If using older IOS (like 12.x), some `clear ip dhcp binding` commands may not work — use `no ip dhcp pool` + recreate method.
+- Always **save configuration** after changes:
+```bash
+write memory
+```
+
+---
+
+✅ Expected Result
+| Interface | Network | DHCP Range | Status |
+|------------|----------|-------------|----------|
+| Fa0/0 | 172.16.150.0/24 | 172.16.150.11–254 | UP |
+| Fa0/1 | 172.16.160.0/24 | 172.16.160.11–254 | UP |
+
+Clients connected to Fa0/0 get `172.16.150.x`  
+Clients connected to Fa0/1 get `172.16.160.x`
+
+---

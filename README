@@ -137,4 +137,4 @@ write memory
 Clients connected to Fa0/0 get `172.16.150.x`  
 Clients connected to Fa0/1 get `172.16.160.x`
 
---- 7
+--- 
